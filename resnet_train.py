@@ -19,21 +19,21 @@ import torchvision.models as models
 import torchvision.transforms as transforms
 from torch.autograd import Variable
 
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+#from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from os.path import exists, isdir, isfile, join
 from os import getcwd
 import shutil
 from tqdm import tqdm
 
-'''
+
 from dataloader import MuraDataset # here load module dataloader
-'''
+
 
 # here we define all the global var
 best_validate_loss = 0
 
-def work():
+def main():
     model = models.resnet18(pretrained = True)
     
     #extract fc layer's parameters 
@@ -43,13 +43,13 @@ def work():
     model.fc = nn.Linear(fc_features, classes) 
     
     # data loading
-    data_dir = join(getcwd(), data_dir_name) # data_dir_name is to be set
+    data_dir =  '/data/mayiping/MURA-v1.0' # data_dir_name is to be set
     train_dir = join(data_dir, 'train')
     train_csv = join(data_dir, 'train.csv')
     validate_dir = join(data_dir, 'valid')
     validate_csv = join(data_dir, 'valid.csv')
     test_dir = join(data_dir, 'test') # here remained for test
-    
+      
     # ensure that data loading is successful
     assert isdir(data_dir) and isdir(train_dir) and isdir(validate_dir) and isdir(test_dir)
     assert exists(train_csv) and isfile(train_csv) and exists(validate_csv) and isfile(validate_csv)
@@ -59,7 +59,7 @@ def work():
 
     # scale image to 224*224, optional: random rotation
     train_transforms = transforms.Compose([
-        transforms.Resize(224),
+        transforms.Scale(224),
         transforms.CenterCrop(224),
         # optional: random rotatation before training or not
         # transforms.RandomVerticalFlip(),
@@ -96,7 +96,7 @@ def work():
     validate_loader = data.DataLoader(
         MuraDataset(validate_csv,
                     transforms.Compose([
-                        transforms.Resize(224),
+                        transforms.Scale(224),
                         transforms.CenterCrop(224),
                         transforms.ToTensor(),
                         normalize,
@@ -123,7 +123,7 @@ def work():
     if no improvement is seen for a ‘patience’ number of epochs, the learning rate is reduced.
     See more at https://pytorch.org/docs/stable/optim.html
     '''
-    scheduler = ReduceLROnPlateau(optimizer, 'max', patience=10, verbose=True)
+   # scheduler = ReduceLROnPlateau(optimizer, 'max', patience=10, verbose=True)
 
 
     # begin training
@@ -135,7 +135,7 @@ def work():
         train(train_loader, model, criterion, optimizer, epoch)
         # evaluate on validation set
         validate_loss = validate(validate_loader, model, criterion, epoch)
-        scheduler.step(validate_loss)
+       # scheduler.step(validate_loss)
         # remember best accuracy and save checkpoint
         is_best = validate_loss > best_validate_loss  # best_validate_loss should be a global var
         best_validate_loss = max(validate_loss, best_validate_loss)
@@ -148,28 +148,33 @@ def work():
 
 def train(train_loader, model, criterion, optimizer, epoch):
     # switch to train mode
+   # print('call train(train_loader, model, criterion, optimizer, epoch)')
     model.train()
 
     # this can be modified, sometimes we set it to zero
-    train_accuracy = DataContainer()
-    train_losses = DataContainer()
+    train_accuracy = AverageMeter()
+    train_losses = AverageMeter()
 
     # pbar is progress bar, tqdm is a module for showing progress bar
     pbar = tqdm(train_loader)
-
+   # print('reach here: just after pbar = tqdm(train_loader)')
+    
     # train process begin
+    
     for i, (images, target, meta) in enumerate(pbar):
+       # print('come into for loop')
         #target = target.cuda(async=True) # moving data to gpu
-
+        print(type(target))
         # turing image and target to torchvariable
         image_var = Variable(images)
         label_var = Variable(target)
-
+      
         # pass this batch through our model and get y_pred
         y_prediction = model(image_var)
 
         # update loss metric
         loss = criterion(y_prediction, label_var)
+        
         train_losses.update(loss.data[0], images.size(0))
 
         # update accuracy metric
@@ -199,15 +204,15 @@ def train(train_loader, model, criterion, optimizer, epoch):
         pbar.set_postfix(
             train_accuracy ="{acc.value: .4f} ({acc.average: .4f})".format(acc=train_accuracy),
             loss="{loss.value: .4f} ({loss.average: .4f})".format(loss=train_losses))
-
+        
     return
 
 def validate(validate_loader, model, criterion, epoch):
     # switch to evaluation mode
     model.eval()
 
-    validate_accuracy = DataContainer()
-    validate_losses = DataContainer()
+    validate_accuracy = AverageMeter()
+    validate_losses = AverageMeter()
     meta_data = []
 
     # show the progress bar
@@ -292,7 +297,7 @@ def save_checkpoint(state, is_best, filename = 'checkpoint.res.tar'):
         shutil.copyfile(filename, 'model_best.res.tar')
 
 """Computes and stores the average and current value"""
-def DataContainer():
+class AverageMeter():
     
     def __init__(self):
         self.reset()
@@ -329,4 +334,6 @@ def accuracy(y_prediction, y_groundtruth, topk=(1, )):
 
     return res
 
+if __name__ == '__main__':
+    main()
     
