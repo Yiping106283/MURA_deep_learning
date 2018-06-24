@@ -43,6 +43,8 @@ class MuraDataset(data.Dataset):
 
     def __getitem__(self, index):
         img_name = join(self.imgs[index])
+        img_name = join('/data/huomingjia/', img_name)
+       # print(self.imgs[index])
         patient = self._parse_patient(img_name)
         study = self._parse_study(img_name)
         image_num = self._parse_image(img_name)
@@ -84,7 +86,3 @@ class MuraDataset(data.Dataset):
         for index, val in enumerate(self.samples):
             weight[index] = weight_per_class[val[1]]
         return weight
-
-
-
-

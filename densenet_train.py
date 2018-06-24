@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jun 20 17:40:27 2018
+Created on Sun Jun 24 18:00:51 2018
 
 @author: mayiping
 """
+
 
 import numpy as np
 import pandas as pd
@@ -31,21 +32,15 @@ from dataloader import MuraDataset # here load module dataloader
 
 
 # here we define all the global var
-#best_validate_loss = 0
 
 def main():
-    model = models.resnet18(pretrained = True)
-    
-    #extract fc layer's parameters 
-    fc_features = model.fc.in_features  
+    model = models.densenet121(pretrained = True)
     
     classes = 2 # here we can modify the classes of data
-    model.fc = nn.Linear(fc_features, classes) 
-    
-    # model = torch.nn.DataParallel(model).cuda()
-    
+    model.classifier = nn.Linear(1024, classes) 
+    model = torch.nn.DataParallel(model).cuda()    
     # data loading
-    data_dir =  '/data/mayiping/MURA-v1.0' # data_dir_name is to be set
+    data_dir =  '/data/huomingjia/MURA-v1.0' # data_dir_name is to be set
     train_dir = join(data_dir, 'train')
     train_csv = join(data_dir, 'train.csv')
     validate_dir = join(data_dir, 'valid')
@@ -61,7 +56,7 @@ def main():
 
     # scale image to 224*224, optional: random rotation
     train_transforms = transforms.Compose([
-        transforms.Scale(224),
+        transforms.Resize(224),
         transforms.CenterCrop(224),
         # optional: random rotatation before training or not
         # transforms.RandomVerticalFlip(),
@@ -98,7 +93,7 @@ def main():
     validate_loader = data.DataLoader(
         MuraDataset(validate_csv,
                     transforms.Compose([
-                        transforms.Scale(224),
+                        transforms.Resize(224),
                         transforms.CenterCrop(224),
                         transforms.ToTensor(),
                         normalize,
@@ -116,15 +111,7 @@ def main():
     # the second parameter in optim is learning rate
     # we can adjust the optim to SGD, etc.
     optimizer = optim.Adam(model.parameters(), 1e-4, weight_decay = 1e-4)
-    
-    
-    '''
-    Reduce learning rate when a metric has stopped improving.
-    Models often benefit from reducing the learning rate by a factor of 2-10 once learning stagnates.
-    This scheduler reads a metrics quantity and
-    if no improvement is seen for a ‘patience’ number of epochs, the learning rate is reduced.
-    See more at https://pytorch.org/docs/stable/optim.html
-    '''
+
     scheduler = ReduceLROnPlateau(optimizer, 'max', patience=10, verbose=True)
 
     best_validate_loss = 0
@@ -165,8 +152,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
     
     for i, (images, target, meta) in enumerate(pbar):
        # print('come into for loop')
-        #target = target.cuda(async=True) # moving data to gpu
-       # print(type(target))
+        target = target.cuda(async=True) # moving data to gpu
+        print(type(target))
         # turing image and target to torchvariable
         image_var = Variable(images)
         label_var = Variable(target)
@@ -183,19 +170,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         _, prec1 = accuracy(y_prediction.data, target, topk=(1, 1))
         train_accuracy.update(prec1[0], images.size(0))
         
-        '''
-        Here we can change the accuracy function
-        Official implementation: see at
-        https://github.com/Atcold/pytorch-CortexNet/blob/master/image-pretraining/main.py
-        # measure accuracy and record loss
-        top1 = DataContainer()
-        top5 = DataContainer()
-        prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
-        losses.update(loss.data[0], input.size(0))
-        top1.update(prec1[0], input.size(0))
-        top5.update(prec5[0], input.size(0))
-        '''
-
+        
         # compute gradient and do SGD
         optimizer.zero_grad() # here we can change the initial grad
         loss.backward()
@@ -221,7 +196,7 @@ def validate(validate_loader, model, criterion, epoch):
     pbar = tqdm(validate_loader)
 
     for i, (images, target, meta) in enumerate(pbar):
-        #target = target.cuda(async=True) move it to gpu
+        target = target.cuda(async=True) #move it to gpu
         image_var = Variable(images, volatile=True)
         label_var = Variable(target, volatile=True)
 
@@ -234,21 +209,9 @@ def validate(validate_loader, model, criterion, epoch):
         _, prec1 = accuracy(y_pred.data, target, topk=(1, 1)) 
         validate_accuracy.update(prec1[0], images.size(0))        
          
-        '''
-        Here we can change the accuracy function
-        Official implementation: see at
-        https://github.com/Atcold/pytorch-CortexNet/blob/master/image-pretraining/main.py
-        # measure accuracy and record loss
-        top1 = DataContainer()
-        top5 = DataContainer()
-        prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
-        losses.update(loss.data[0], input.size(0))
-        top1.update(prec1[0], input.size(0))
-        top5.update(prec5[0], input.size(0))
-        '''
-        
+       
         sm = nn.Softmax()
-        sm_pred = sm(y_pred).data.numpy() # convert to numpy array
+        sm_pred = sm(y_pred).data.cpu().numpy() # convert to numpy array
 
         y_norm_probs = sm_pred[:, 0]  # p(normal)
         y_pred_probs = sm_pred[:, 1]  # p(abnormal)
@@ -280,16 +243,6 @@ def validate(validate_loader, model, criterion, epoch):
     # to_numeric: change the column type
     ab['y_pred_round'] = pd.to_numeric(ab.y_pred_round, downcast='integer') 
 
-    '''
-    https://blog.csdn.net/sinat_26917383/article/details/75199996
-    accuracy_score(y_true, y_pred, normalize=False)  # 类似海明距离，每个类别求准确后，再求微平均
-    metrics.f1_score(y_true, y_pred, average='weighted')  
-    
-    from sklearn.metrics import cohen_kappa_score
-    y_true = [2, 0, 2, 2, 0, 1]
-    y_pred = [0, 0, 2, 2, 0, 2]
-    cohen_kappa_score(y_true, y_pred)
-    '''
     print('cohen_kappa_score = ',cohen_kappa_score(ab.y_true, ab.y_pred_round))
     return f1_score(ab.y_true, ab.y_pred_round)
 
@@ -317,10 +270,7 @@ class AverageMeter():
         self.average = self.sum / self.count
 
 
-"""Computes the precision@k for the specified values of k"""
-''' official pytorch implementation, see at
-https://github.com/Atcold/pytorch-CortexNet/blob/master/image-pretraining/main.py
-'''
+
 def accuracy(y_prediction, y_groundtruth, topk=(1, )):
     maxk = max(topk)
     batch_size = y_groundtruth.size(0)
