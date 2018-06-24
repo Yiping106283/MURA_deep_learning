@@ -31,6 +31,7 @@ from dataloader import MuraDataset # here load module dataloader
 
 
 # here we define all the global var
+#best_validate_loss = 0
 
 def main():
     model = models.resnet18(pretrained = True)
@@ -48,8 +49,7 @@ def main():
     validate_dir = join(data_dir, 'valid')
     validate_csv = join(data_dir, 'valid.csv')
     test_dir = join(data_dir, 'test') # here remained for test
-    test_csv = join(data_dir, 'test_submission_example.csv')  
-    
+      
     # ensure that data loading is successful
     assert isdir(data_dir) and isdir(train_dir) and isdir(validate_dir) and isdir(test_dir)
     assert exists(train_csv) and isfile(train_csv) and exists(validate_csv) and isfile(validate_csv)
@@ -104,21 +104,9 @@ def main():
         batch_size = 50, # here we can adjust batch size
         shuffle = False, # here we can choose whether to shuffle
         num_workers = 4, # Load the data in parallel using multiprocessing workers.
-        pin_memory = True) # pin_memory is just for faster data transfers
+        pin_memory=True) # pin_memory is just for faster data transfers
 
-    # define test loader
-    '''test_loader = data.DataLoader(
-            MuraDataset(test_csv,
-                        transforms.Compose([
-                                transforms.Scale(224),
-                                transforms.CenterCrop(224),
-                                transforms.ToTensor(),
-                                normalize,
-                        ])),
-        batch_size = 50,
-        shuffle = False,
-        num_workers = 4,
-        pin_memory = True)'''
+    
     
     # define critical things for training 
 
@@ -135,13 +123,12 @@ def main():
     if no improvement is seen for a ‘patience’ number of epochs, the learning rate is reduced.
     See more at https://pytorch.org/docs/stable/optim.html
     '''
-    # scheduler = ReduceLROnPlateau(optimizer, 'max', patience=10, verbose=True)
+   # scheduler = ReduceLROnPlateau(optimizer, 'max', patience=10, verbose=True)
 
-    
     best_validate_loss = 0
     # begin training
     start_epoch = 1
-    epochs = 20
+    epochs = 10
 
     for epoch in range(start_epoch, epochs):
         # train for one epoch
@@ -177,7 +164,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     for i, (images, target, meta) in enumerate(pbar):
        # print('come into for loop')
         #target = target.cuda(async=True) # moving data to gpu
-        print(type(target))
+       # print(type(target))
         # turing image and target to torchvariable
         image_var = Variable(images)
         label_var = Variable(target)
@@ -301,7 +288,7 @@ def validate(validate_loader, model, criterion, epoch):
     y_pred = [0, 0, 2, 2, 0, 2]
     cohen_kappa_score(y_true, y_pred)
     '''
-    print('cohen_kappa_score = ', cohen_kappa_score(ab.y_true, ab.y_pred_round))
+    print('cohen_kappa_score = ',cohen_kappa_score(ab.y_true, ab.y_pred_round))
     return f1_score(ab.y_true, ab.y_pred_round)
 
 def save_checkpoint(state, is_best, filename = 'checkpoint.res.tar'):
