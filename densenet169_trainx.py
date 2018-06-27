@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jun 24 18:00:51 2018
-
-@author: mayiping
-"""
-
-
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (accuracy_score, f1_score, precision_score, recall_score, cohen_kappa_score, roc_auc_score)
@@ -35,9 +27,11 @@ from dataloader import MuraDataset # here load module dataloader
 
 def main():
     model = models.densenet169(pretrained = True)
-    
+   
     classes = 2 # here we can modify the classes of data
     model.classifier = nn.Linear(1664, classes) 
+   
+    model.load_state_dict(torch.load('checkpoint.try.tar')) 
     model = torch.nn.DataParallel(model).cuda()    
     # data loading
     data_dir =  '/data/huomingjia/MURA-v1.0' # data_dir_name is to be set
@@ -128,12 +122,12 @@ def main():
         # remember best accuracy and save checkpoint
         is_best = validate_loss > best_validate_loss  # best_validate_loss should be a global var
         best_validate_loss = max(validate_loss, best_validate_loss)
-        save_checkpoint({
-            'epoch': epoch + 1,
-            'arch': 'densenet',
-            'state_dict': model.state_dict(),
-            'best_validate_loss': best_validate_loss,
-        }, is_best)
+        save_checkpoint(
+           # 'epoch': epoch + 1,
+           # 'arch': 'densenet',
+             model.state_dict(),
+            #'best_validate_loss': best_validate_loss,
+         is_best)
 
 def train(train_loader, model, criterion, optimizer, epoch):
     # switch to train mode
@@ -153,7 +147,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
     for i, (images, target, meta) in enumerate(pbar):
        # print('come into for loop')
         target = target.cuda(async=True) # moving data to gpu
-        print(type(target))
+       # print(type(target))
         # turing image and target to torchvariable
         image_var = Variable(images)
         label_var = Variable(target)
@@ -201,6 +195,7 @@ def validate(validate_loader, model, criterion, epoch):
         label_var = Variable(target, volatile=True)
 
         y_pred = model(image_var)
+     
         # udpate loss metric
         loss = criterion(y_pred, label_var)
         validate_losses.update(loss.data[0], images.size(0))
@@ -215,7 +210,7 @@ def validate(validate_loader, model, criterion, epoch):
 
         y_norm_probs = sm_pred[:, 0]  # p(normal)
         y_pred_probs = sm_pred[:, 1]  # p(abnormal)
-
+        
         meta_data.append(
             pd.DataFrame({
                 'img_filename': meta['img_filename'],
