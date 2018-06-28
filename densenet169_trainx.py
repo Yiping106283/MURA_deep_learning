@@ -39,7 +39,7 @@ def main():
     classes = 2 # here we can modify the classes of data
     model.classifier = nn.Linear(1664, classes) 
     model = torch.nn.DataParallel(model).cuda()
-    checkpoint = torch.load('model_best1.dense.tar')
+    checkpoint = torch.load('model_bestroc.dense.tar')
     model.load_state_dict(checkpoint['state_dict'])
     
     # data loading
@@ -113,11 +113,12 @@ def main():
     criterion = nn.CrossEntropyLoss()
     # the second parameter in optim is learning rate
     # we can adjust the optim to SGD, etc.
-    optimizer = optim.Adam(model.parameters(), 1e-5, weight_decay = 1e-5)
+    optimizer = optim.Adam(model.parameters(), 1e-4, weight_decay = 1e-4)
 
     scheduler = ReduceLROnPlateau(optimizer, 'max', patience=10, verbose=True)
 
     best_validate_loss = 0
+    best_roc_auc = 0
     # begin training
     start_epoch = 1
     epochs = 20
@@ -126,10 +127,12 @@ def main():
         # train for one epoch
         train(train_loader, model, criterion, optimizer, epoch)
         # evaluate on validation set
-        validate_loss = validate(validate_loader, model, criterion, epoch)
+        validate_loss,roc_auc = validate(validate_loader, model, criterion, epoch)
         scheduler.step(validate_loss)
         # remember best accuracy and save checkpoint
-        is_best = validate_loss > best_validate_loss  # best_validate_loss should be a global var
+       # is_best = validate_loss > best_validate_loss  # best_validate_loss should be a global var
+        is_best = roc_auc > best_roc_auc
+        best_roc_auc = max(roc_auc, best_roc_auc)
         best_validate_loss = max(validate_loss, best_validate_loss)
         save_checkpoint(
            { 'epoch': epoch + 1,
@@ -249,12 +252,13 @@ def validate(validate_loader, model, criterion, epoch):
 
     print('cohen_kappa_score = ',cohen_kappa_score(ab.y_true, ab.y_pred_round))
     print('roc_auc = ', roc_auc_score(ab.y_true, ab.y_pred_round))
-    return f1_score(ab.y_true, ab.y_pred_round)
+    roc_auc = roc_auc_score(ab.y_true, ab.y_pred_round)
+    return (f1_score(ab.y_true, ab.y_pred_round), roc_auc)
 
 def save_checkpoint(state, is_best, filename = 'checkpoint.dense.tar'):
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, 'model_best2.dense.tar')
+        shutil.copyfile(filename, 'model_best1.dense.tar')
 
 """Computes and stores the average and current value"""
 class AverageMeter():
