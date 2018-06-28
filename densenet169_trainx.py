@@ -38,9 +38,10 @@ def main():
    
     classes = 2 # here we can modify the classes of data
     model.classifier = nn.Linear(1664, classes) 
-   
-    model.load_state_dict(torch.load('checkpoint.try.tar')) 
-    model = torch.nn.DataParallel(model).cuda()    
+    model = torch.nn.DataParallel(model).cuda()
+    checkpoint = torch.load('model_best1.dense.tar')
+    model.load_state_dict(checkpoint['state_dict'])
+    
     # data loading
     data_dir =  '/data/huomingjia/MURA-v1.0' # data_dir_name is to be set
     train_dir = join(data_dir, 'train')
@@ -84,7 +85,7 @@ def main():
     # define train_loader
     train_loader = data.DataLoader(
         train_data,
-        batch_size = 128, # here we can adjust batch size
+        batch_size = 16, # here we can adjust batch size
         # shuffle=True,  # here we can choose whether to shuffle
         num_workers = 4, # Load the data in parallel using multiprocessing workers
         sampler = sampler,
@@ -100,7 +101,7 @@ def main():
                         transforms.ToTensor(),
                         normalize,
                     ])),
-        batch_size = 128, # here we can adjust batch size
+        batch_size = 16, # here we can adjust batch size
         shuffle = False, # here we can choose whether to shuffle
         num_workers = 4, # Load the data in parallel using multiprocessing workers.
         pin_memory=True) # pin_memory is just for faster data transfers
@@ -112,14 +113,14 @@ def main():
     criterion = nn.CrossEntropyLoss()
     # the second parameter in optim is learning rate
     # we can adjust the optim to SGD, etc.
-    optimizer = optim.Adam(model.parameters(), 1e-4, weight_decay = 1e-4)
+    optimizer = optim.Adam(model.parameters(), 1e-5, weight_decay = 1e-5)
 
     scheduler = ReduceLROnPlateau(optimizer, 'max', patience=10, verbose=True)
 
     best_validate_loss = 0
     # begin training
     start_epoch = 1
-    epochs = 30
+    epochs = 20
 
     for epoch in range(start_epoch, epochs):
         # train for one epoch
@@ -131,11 +132,11 @@ def main():
         is_best = validate_loss > best_validate_loss  # best_validate_loss should be a global var
         best_validate_loss = max(validate_loss, best_validate_loss)
         save_checkpoint(
-           # 'epoch': epoch + 1,
-           # 'arch': 'densenet',
-             model.state_dict(),
-            #'best_validate_loss': best_validate_loss,
-         is_best)
+           { 'epoch': epoch + 1,
+            'arch': 'densenet',
+            'state_dict': model.state_dict(),
+            'best_validate_loss': best_validate_loss,
+         }, is_best)
 
 def train(train_loader, model, criterion, optimizer, epoch):
     # switch to train mode
@@ -253,7 +254,7 @@ def validate(validate_loader, model, criterion, epoch):
 def save_checkpoint(state, is_best, filename = 'checkpoint.dense.tar'):
     torch.save(state, filename)
     if is_best:
-        shutil.copyfile(filename, 'model_best.dense.tar')
+        shutil.copyfile(filename, 'model_best2.dense.tar')
 
 """Computes and stores the average and current value"""
 class AverageMeter():
