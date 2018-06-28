@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jun 24 18:00:51 2018
+
+@author: mayiping
+"""
+
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (accuracy_score, f1_score, precision_score, recall_score, cohen_kappa_score, roc_auc_score)
@@ -195,7 +203,7 @@ def validate(validate_loader, model, criterion, epoch):
         label_var = Variable(target, volatile=True)
 
         y_pred = model(image_var)
-     
+        print('just after y_pred')
         # udpate loss metric
         loss = criterion(y_pred, label_var)
         validate_losses.update(loss.data[0], images.size(0))
@@ -210,7 +218,7 @@ def validate(validate_loader, model, criterion, epoch):
 
         y_norm_probs = sm_pred[:, 0]  # p(normal)
         y_pred_probs = sm_pred[:, 1]  # p(abnormal)
-        
+        print('just before meta_data.append')
         meta_data.append(
             pd.DataFrame({
                 'img_filename': meta['img_filename'],
