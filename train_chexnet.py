@@ -260,6 +260,24 @@ def save_checkpoint(state, is_best, filename = 'checkpoint.dense.tar'):
     if is_best:
         shutil.copyfile(filename, 'model_best_01.dense.tar')
 
+# define the last layer of densenet169
+class DenseNet169(nn.Module):
+    
+    def __init__(self, classCount, isTrained):
+        
+        super(DenseNet169, self).__init__()
+        
+        self.densenet169 = torchvision.models.densenet169(pretrained=True)
+        
+        kernelCount = self.densenet169.classifier.in_features
+        
+        self.densenet169.classifier = nn.Sequential(nn.Linear(kernelCount, classCount), nn.Sigmoid())
+        
+    def forward (self, x):
+        x = self.densenet169(x)
+        return x
+
+
 """Computes and stores the average and current value"""
 class AverageMeter():
     
