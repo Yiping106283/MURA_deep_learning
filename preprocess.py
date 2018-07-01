@@ -1,12 +1,13 @@
 import argparse
 import cv2
-import os
+from os import mkdir, makedirs
+from os.path import exists
 import numpy as np
 import csv
+import sys
 
-from edgefinder import EdgeFinder
+from edgefinder import *
 
-crop_size = 224
 
 def reverse_color(img):
     return 255-img
@@ -33,23 +34,38 @@ def preprocess(filename_in, filename_out):
 
     x, y = find_act(edge_finder.edgeImage())
 
+    create_path(filename_out)
     cv2.imwrite(filename_out, img[x: x+crop_size, y:y+crop_size])
 
 
-def csv_process(in_dir, out_dir):
-    with open(in_dir+'test.csv', 'r') as csvfile:
+def csv_process(in_dir, out_dir, csv_name):
+    with open(in_dir+csv_name, 'r') as csvfile:
         img_reader = csv.reader(csvfile)
         for row in img_reader:
-            #tmp = row[0].find("/")+1
-            #filename = row[0, tmp:], label = row[1]
-            filename_in = in_dir + row[0]
-            filename_out = out_dir + row[0]
-            preprocess(filename_in, filename_out)
+            tmp = row[0].find("/")
+            if in_dir[-1]=='/':
+                tmp += 1
+            filename = row[0][tmp:]
+            for i in range(1, 10):
+                filename_in = in_dir + filename + "image" + str(i) + ".png"
+                filename_out = out_dir + filename + "image" + str(i) + ".png"
+                #print(filename_out)
+                if not exists(filename_in):
+                    break
+                preprocess(filename_in, filename_out)
 
+def create_path(s):
+    p = s.rfind("/")
+    mk = s[: p]
+    if not exists(mk):
+        makedirs(mk)
 
 
 def main():
-    csv_process("./", "./")
+    in_dir = sys.argv[1]
+    out_dir = sys.argv[2]
+    csv_name = sys.argv[3]
+    csv_process(in_dir, out_dir, csv_name)
 
 if __name__ == '__main__':
     main()

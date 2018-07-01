@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import os
 
+crop_size = 224
 
 def crop_center_with_pixel(img,cropx,cropy):
     y,x= img.shape
@@ -38,11 +39,12 @@ def reverse_detector(img):
 
 
 class EdgeFinder:
-    def __init__(self, image, filter_size=1, threshold1=0, threshold2=0):
+    def __init__(self, image, filter_size=1, threshold1=0, threshold2=0, require_blur = False):
         self.image = image
         self._filter_size = filter_size
         self._threshold1 = threshold1
         self._threshold2 = threshold2
+        self.require_blur = require_blur
         self._render()
     def threshold1(self):
         return self._threshold1
@@ -60,7 +62,10 @@ class EdgeFinder:
         return self._smoothed_img
 
     def _render(self):
-        self._smoothed_img = cv2.GaussianBlur(self.image, (self._filter_size, self._filter_size), sigmaX=0, sigmaY=0)
+        if self.require_blur:
+            self._smoothed_img = cv2.GaussianBlur(self.image, (self._filter_size, self._filter_size), sigmaX=0, sigmaY=0)
+        else:
+            self._smoothed_img = self.image
         self._edge_img = cv2.Canny(self._smoothed_img, self._threshold1, self._threshold2)
 
 def main():
