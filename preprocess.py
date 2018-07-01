@@ -33,7 +33,6 @@ def preprocess(filename_in, filename_out):
     '''
 
     x, y = find_act(edge_finder.edgeImage())
-
     create_path(filename_out)
     cv2.imwrite(filename_out, img[x: x+crop_size, y:y+crop_size])
 
@@ -47,9 +46,8 @@ def csv_process(in_dir, out_dir, csv_name):
                 tmp += 1
             filename = row[0][tmp:]
             for i in range(1, 10):
-                filename_in = in_dir + filename + "image" + str(i) + ".png"
-                filename_out = out_dir + filename + "image" + str(i) + ".png"
-                #print(filename_out)
+                filename_in = in_dir + filename
+                filename_out = out_dir + filename
                 if not exists(filename_in):
                     break
                 preprocess(filename_in, filename_out)
@@ -62,6 +60,7 @@ def create_path(s):
 
 
 def main():
+    print(sys.argv)
     in_dir = sys.argv[1]
     out_dir = sys.argv[2]
     csv_name = sys.argv[3]
