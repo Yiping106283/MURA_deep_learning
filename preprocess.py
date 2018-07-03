@@ -16,8 +16,8 @@ def preprocess(filename_in, filename_out):
 
     img = cv2.imread(filename_in, cv2.IMREAD_GRAYSCALE)
     m, n = img.shape
-
-    img = crop_center_with_pixel(cv2.resize(img, (320, 320)), 280, 280)
+    img = cv2.resize(img, (256, 256))
+#    img = crop_center_with_pixel(cv2.resize(img, (320, 320)), 280, 280)
     edge_finder = EdgeFinder(img, filter_size=13, threshold1=0, threshold2=8)
 
     '''

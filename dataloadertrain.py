@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jul  4 01:53:21 2018
+
+@author: huomingjia
+"""
+
+
 from __future__ import absolute_import, division, print_function
 
 import re 
@@ -43,8 +51,8 @@ class MuraDataset(data.Dataset):
 
     def __getitem__(self, index):
         img_name = join(self.imgs[index])
-#	img_name = img_name[img_name.find("/"):]
-        img_name = join('/data/wuyifan/', img_name)
+        img_name = img_name[img_name.find("/"):]
+        img_name = "/data/wuyifan/muraproc"+img_name
        # print(self.imgs[index])
         patient = self._parse_patient(img_name)
         study = self._parse_study(img_name)
