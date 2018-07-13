@@ -18,7 +18,13 @@ Our Methods and Results
 * For classification task, we use multi-instance learning. Since the task is a binary classification, we replaced the last fully connected layer of densenet201 with one that has a single ouput. Then we placed a sigmoid function after the output. For the loss function, we use BCE loss.
 
 * For localization task, we use class activation map, see at https://arxiv.org/abs/1512.04150 . 
-  We may further try GradCAM in the future.
+  We may further try GradCAM in the future. 
+  Following is an example of our CAM.
+  <figure class="half">
+    <img src="https://github.com/GoAhead106283/MURA_deep_learning/blob/master/image2">
+    <img src="https://github.com/GoAhead106283/MURA_deep_learning/blob/master/image2_heatmap">
+ </figure>
+  
   
 * For retrieval task, We use CBIR(Content Based Image Retrieval). The result of Image Retrieval is output as MURA-v1.0/train/XR_ELBOW/patient04989/study1_positive/image1.png
 
