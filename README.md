@@ -21,8 +21,8 @@ Our Methods and Results
   We may further try GradCAM in the future. 
   Following is an example of our CAM.
   <figure class="half">
-    <img src="https://github.com/GoAhead106283/MURA_deep_learning/blob/master/image2.png">
-    <img src="https://github.com/GoAhead106283/MURA_deep_learning/blob/master/image2_heatmap.jpg">
+    <img src="https://github.com/GoAhead106283/MURA_deep_learning/blob/master/image2.png" title="original image" width="100" />
+    <img src="https://github.com/GoAhead106283/MURA_deep_learning/blob/master/image2_heatmap.jpg" title="CAM" width="100" />
  </figure>
   
   
