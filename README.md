@@ -26,6 +26,12 @@ Our Methods and Results
  </figure>
   
   
-* For retrieval task, We use CBIR(Content Based Image Retrieval). The result of Image Retrieval is output as MURA-v1.0/train/XR_ELBOW/patient04989/study1_positive/image1.png
+* For retrieval task, We use CBIR(Content Based Image Retrieval). The result of Image Retrieval is output as MURA-v1.0/train/XR_ELBOW/patient04989/study1_positive/image1.png </br>
+  Here is an example of our result:
+<figure class="half">
+    <img src="https://github.com/GoAhead106283/MURA_deep_learning/blob/master/query.png" title="original image" width="100" />
+    <img src="https://github.com/GoAhead106283/MURA_deep_learning/blob/master/answer.png" title="CAM" width="100" />
+ </figure>
+ 
 
 * We provide two example pictures for localization and image retrieval, respectively. The example of heat map input is image2.png, the example of image retrieval input is image1.png. 
