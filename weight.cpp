@@ -1,3 +1,7 @@
+/*
+@author: huomingjia
+*/
+
 #include<iostream>
 #include<string.h>
 #include<stdlib.h>
