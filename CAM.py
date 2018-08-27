@@ -22,8 +22,7 @@ import torchvision
 import torchvision.transforms as transforms
 import torchvision.models as models
 
-#-------------------------------------------------------------------------------- 
-#---- Class to generate heatmaps (CAM)
+# Class to generate heatmaps (CAM)
 
 class HeatmapGenerator ():
     
@@ -41,7 +40,7 @@ class HeatmapGenerator ():
         self.model = model.module.features
         self.model.eval()
         
-        #---- Initialize the weights
+        # Initialize the weights
         self.weights = list(self.model.parameters())[-2]
 
         #---- Initialize the image transform - resize + normalize
@@ -56,7 +55,7 @@ class HeatmapGenerator ():
 
     def generate (self, pathImageFile, pathOutputFile, transCrop):
         
-        #---- Load image, transform, convert 
+        # Load image, transform, convert 
         imageData = Image.open(pathImageFile).convert('RGB')
         imageData = self.transformSequence(imageData)
         imageData = imageData.unsqueeze_(0)
@@ -64,21 +63,18 @@ class HeatmapGenerator ():
         input = torch.autograd.Variable(imageData)
        
         output = self.model(input.cuda())
-        #---- Generate heatmap
+        # Generate heatmap
         heatmap = np.zeros((7, 7, 1), dtype=np.float64)
-       # heatmap[0,0,0] = (heatmap[0,1,0]+heatmap[1,0,0]+heatmap[1,1,0])/3
         weight = self.weights.data.cpu().numpy()
         len = weight.shape[0]
         output = output.data.cpu().numpy()
         for i in range(len):
             heatmap[:, :, 0] += output[0, i]*weight[i]
+        
         heatmap = (heatmap-heatmap.min())/(heatmap.max()-heatmap.min())*255
-        #cv2.imwrite('heatmap_before.jpg',heatmap)
-        #heatmap[0,0,0] = (heatmap[0,1,0]+heatmap[1,0,0])/2
-        #heatmap[1,1,0] = (heatmap[0,1,0]+heatmap[1,0,0]+heatmap[1,2,0]+heatmap[2,1,0])/4
-        #cv2.imwrite('heatmap_after.jpg', heatmap)
         heatmap = np.uint8(heatmap)
         heatmap = cv2.resize(heatmap, (transCrop, transCrop))
+        
         '''
         print('weights shape: ',self.weights.shape)
         for i in range (0, len(self.weights)):
@@ -87,20 +83,16 @@ class HeatmapGenerator ():
             else: heatmap += self.weights[i] * map
       
         print('heatmap size =', heatmap.shape)
-        #---- Blend original and heatmap 
         npHeatmap = heatmap.cpu().data.numpy()
         '''
+        
         imgOriginal = cv2.imread(pathImageFile)
         imgOriginal = cv2.resize(imgOriginal, (transCrop, transCrop))
-        '''
-        cam = npHeatmap / np.max(npHeatmap)
-        '''
-        heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
         
-       # print('comp size : ',heatmap.shape, imgOriginal.shape)   
-        img = heatmap * 0.5 + imgOriginal * 0.5
-            
+        heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)      
+        img = heatmap * 0.5 + imgOriginal * 0.5            
         cv2.imwrite(pathOutputFile, img)
+        
         
 def GetHeatMap(path_input, path_output, path_model):
     
