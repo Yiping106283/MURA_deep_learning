@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jul  4 01:53:21 2018
-
-@author: huomingjia
-"""
-
-
 from __future__ import absolute_import, division, print_function
 
 import re 
