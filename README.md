@@ -38,6 +38,6 @@ Our Methods and Results
 
 Reference
 ------
-B. Zhou, A. Khosla, A. Lapedriza, A. Oliva, andA. Torralba. Learning deep features for discriminativelocalization. InProceedings of the IEEE Conference onComputer Vision and Pattern Recognition, pages2921–2929, 2016.
+B. Zhou, A. Khosla, A. Lapedriza, A. Oliva, and A. Torralba. Learning deep features for discriminative localization. In Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, pages 2921–2929, 2016.
 
-H. Hebbar, S. Mushigeri, and U. Niranjan. Medicalimage retrieval–performance comparison using texturefeatures.International Journal of Engineering Researchand Development, 9(9):30–34, 2014
+H. Hebbar, S. Mushigeri, and U. Niranjan. Medicalimage retrieval–performance comparison using texture features. International Journal of Engineering Researchand Development, 9(9):30–34, 2014
