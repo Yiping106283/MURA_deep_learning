@@ -36,7 +36,7 @@ Our Methods and Results
 
 * We provide two example pictures for localization and image retrieval, respectively. The example of heat map input is image2.png, the example of image retrieval input is image1.png. 
 
-References
+Reference
 ------
 B. Zhou, A. Khosla, A. Lapedriza, A. Oliva, andA. Torralba. Learning deep features for discriminativelocalization. InProceedings of the IEEE Conference onComputer Vision and Pattern Recognition, pages2921–2929, 2016.
 
