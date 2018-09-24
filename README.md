@@ -17,7 +17,7 @@ Our Methods and Results
 ------
 * For classification task, we use multi-instance learning. Since the task is a binary classification, we replaced the last fully connected layer of densenet201 with one that has a single ouput. Then we placed a sigmoid function after the output. For the loss function, we use BCE loss.
 
-* For localization task, we use class activation map, see at https://arxiv.org/abs/1512.04150 . 
+* For localization task, we use class activation map. 
   We may further try GradCAM in the future. 
   Following is an example of the CAM.
   <figure class="half">
@@ -35,3 +35,9 @@ Our Methods and Results
  
 
 * We provide two example pictures for localization and image retrieval, respectively. The example of heat map input is image2.png, the example of image retrieval input is image1.png. 
+
+References
+------
+B. Zhou, A. Khosla, A. Lapedriza, A. Oliva, andA. Torralba. Learning deep features for discriminativelocalization. InProceedings of the IEEE Conference onComputer Vision and Pattern Recognition, pages2921–2929, 2016.
+
+H. Hebbar, S. Mushigeri, and U. Niranjan. Medicalimage retrieval–performance comparison using texturefeatures.International Journal of Engineering Researchand Development, 9(9):30–34, 2014
